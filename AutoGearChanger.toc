@@ -1,0 +1,12 @@
+## Interface: 71000
+## Title: AutoGearChanger
+## Notes: Allow to automatically change gear on some situations.
+## Author: Guema
+## Version: 1.0.0
+## SavedVariables: AutoGearChangerDB
+## OptionalDeps: Ace3
+## X-Embeds: Ace3
+
+embeds.xml
+
+Core.lua
