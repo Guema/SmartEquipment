@@ -1,5 +1,5 @@
 ## Interface: 71000
-## Title: AutoGearChanger
+## Title: AutoGearSwapper
 ## Notes: Allow to automatically change gear on some situations.
 ## Author: Guema
 ## Version: 1.0.0
