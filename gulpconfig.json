@@ -1,0 +1,14 @@
+{
+    "addon_name": "AutoGearSwap",
+    "wow_path" : "D:/World of Warcraft/",
+    "to_include" : [
+        "./**/*.xml",
+        "./**/*.lua",
+        "./**/*.toc",
+        "LICENSE",
+        "README.md",
+        "./Libs/**"
+    ],
+    "to_exclude" : [
+    ]
+}
