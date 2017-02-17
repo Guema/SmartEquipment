@@ -1,55 +1,84 @@
 autoGS = LibStub("AceAddon-3.0"):NewAddon("AutoGearSwap", "AceConsole-3.0", "AceEvent-3.0")
 
 local options = {
-    name = "AutoGearSwap",
+    name = "AutoGearSwap settings",
     handler = autoGS,
-    type = 'group',
+    type = "group",
     args = {
-        msg = {
-            type = "input",
-            name = "Message",
-            desc = "The message to be displayed when you get home.",
-            usage = "<Your message>",
-            get = "GetMessage",
-            set = "SetMessage",
+        Spec1 = {
+            type = "select",
+            style = "dropdown",
+            name = "Default Situation",
+            icon = "inv_misc_questionmark",
+            desc = "Chose the gear set you want to equip when switching for this spec.",
+            values = {
+                "none",
+                "First set",
+                "Second set",
+                "Third set",
+            },
+            get = "GetGear",
+            set = "SetGear",
         },
     },
 }
 
-autoGS.message = "Default Message"
+local defaults = {
+    profile = {
+        gearTable = {
+            1,
+        },
+    },
+}
 
 function autoGS:OnInitialize()
     -- Called when the addon is loaded
-    LibStub("AceConfig-3.0"):RegisterOptionsTable("AutoGearSwap", options, {"autogearswap", "autogs", "ags"})
-    self:RegisterChatCommand("setext", "ChatCommand")
+    self.db = LibStub("AceDB-3.0"):New("AutoGearSwapDB", defaults)
+
+    LibStub("AceConfig-3.0"):RegisterOptionsTable("AGS_settings", options)
+    self.optionsFrame = LibStub("AceConfigDialog-3.0"):AddToBlizOptions("AGS_settings", "AutoGearSwap")
+    self:RegisterChatCommand("ags", self.SlashCommand)
 end
 
 function autoGS:OnEnable()
     -- Called when the addon in enabled
-    self:RegisterEvent("PLAYER_SPECIALIZATION_CHANGED")
+    self:RegisterEvent("PLAYER_SPECIALIZATION_CHANGED", "OnSpecChange")
 end
 
 function autoGS:OnDisable()
     -- Called when the addon is disabled
 end
 
-function autoGS:PLAYER_SPECIALIZATION_CHANGED()
-    self:Print(self.message)
+function autoGS:OnSpecChange(EventType, UnitID)
+    if(UnitID == "player") then
+        local _specID,_specName = GetSpecializationInfo(GetSpecialization())
+        UIErrorsFrame:AddMessage("Spec changed for " .. _specName ..". Swapping gear for %gearset_name%", 1.0, 1.0, 1.0, 5.0)
+    end
 end
 
-
-function autoGS:GetMessage(info)
-    return self.message
+function autoGS:GetGear(info)
+    return self.db.profile.gearTable[1]
 end
 
-function autoGS:SetMessage(info, newValue)
-    self.message = newValue
-end
+function autoGS:SetGear(info, choiceID)
 
-function autoGS:ChatCommand(input)
-    if not input or input:trim() == "" then
-        -- InterfaceOptionsFrame_OpenToCategory(self.optionsFrame)
+    self.db.profile.gearTable[1] = choiceID
+    --[[
+    if GetEquipmentSetInfoByName(gearName) then
+        self.db.profile.gearTable[1] = gearName
     else
-        -- LibStub("AceConfigCmd-3.0"):HandleCommand("wh", "WelcomeHome", input)
+        self.db.profile.gearTable[1] = ""
+    end
+    --]]
+end
+
+function autoGS:SlashCommand(input)
+    InterfaceOptionsFrame_OpenToCategory("AutoGearSwap")
+    InterfaceOptionsFrame_OpenToCategory("AutoGearSwap")
+end
+
+function autoGS:SwapGear(SpecID)
+    if(self.db.profile.gearTable[SpecID]) then
+        UseEquipmentSet(self.db.profile.gearTable[SpecID])
     end
 end

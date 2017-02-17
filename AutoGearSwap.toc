@@ -1,9 +1,9 @@
 ## Interface: 71000
-## Title: AutoGearSwapper
+## Title: AutoGearSwap
 ## Notes: Allow to automatically change gear on some situations.
 ## Author: Guema
 ## Version: 1.0.0
-## SavedVariables: AutoGearChangerDB
+## SavedVariables: AutoGearSwapDB
 ## OptionalDeps: Ace3
 ## X-Embeds: Ace3
 
