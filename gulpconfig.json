@@ -1,5 +1,5 @@
 {
-    "addon_name": "AutoGearSwap",
+    "addon_name": "SmartEquipment",
     "wow_path" : "D:/World of Warcraft/",
     "to_include" : [
         "./**/*.xml",

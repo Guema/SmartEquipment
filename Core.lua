@@ -1,84 +1,100 @@
-autoGS = LibStub("AceAddon-3.0"):NewAddon("AutoGearSwap", "AceConsole-3.0", "AceEvent-3.0")
+smartEquipment = LibStub("AceAddon-3.0"):NewAddon("SmartEquipment", "AceConsole-3.0", "AceEvent-3.0")
 
-local options = {
-    name = "AutoGearSwap settings",
-    handler = autoGS,
-    type = "group",
-    args = {
-        Spec1 = {
+local function options()
+    local tb_options = {
+        name = "SmartEquipment settings",
+        handler = smartEquipment,
+        type = "group",
+        args = {},
+    }
+    for k1, v1 in tb_options.handler.GetAvailableSpecializations() do
+        tb_options.args[tostring(k1)] = {
+            name = v1,
             type = "select",
+            values = {},
             style = "dropdown",
-            name = "Default Situation",
-            icon = "inv_misc_questionmark",
-            desc = "Chose the gear set you want to equip when switching for this spec.",
-            values = {
-                "none",
-                "First set",
-                "Second set",
-                "Third set",
-            },
-            get = "GetGear",
-            set = "SetGear",
-        },
-    },
-}
-
-local defaults = {
-    profile = {
-        gearTable = {
-            1,
-        },
-    },
-}
-
-function autoGS:OnInitialize()
-    -- Called when the addon is loaded
-    self.db = LibStub("AceDB-3.0"):New("AutoGearSwapDB", defaults)
-
-    LibStub("AceConfig-3.0"):RegisterOptionsTable("AGS_settings", options)
-    self.optionsFrame = LibStub("AceConfigDialog-3.0"):AddToBlizOptions("AGS_settings", "AutoGearSwap")
-    self:RegisterChatCommand("ags", self.SlashCommand)
+            get = "GetChoice",
+            set = "SetChoice",
+        }
+        for k2, v2 in tb_options.handler.GetAvailableEquipments() do
+            tb_options.args[tostring(k1)].values[k2] = v2
+        end
+    end
+    return tb_options
 end
 
-function autoGS:OnEnable()
-    -- Called when the addon in enabled
+local defaultDB = {
+    profile = {
+        gearConfigList = {},
+    },
+}
+
+function smartEquipment:OnInitialize()
+    self.datatest = {nil}
+    self.db = LibStub("AceDB-3.0"):New("SmartEquipmentDB", defaultDB)
+    LibStub("AceConfig-3.0"):RegisterOptionsTable("SmartEquipmentOptions", options)
+    self.optionsFrame = LibStub("AceConfigDialog-3.0"):AddToBlizOptions("SmartEquipmentOptions", "SmartEquipment")
+    self:RegisterChatCommand("ags", "DebugCommand")
+end
+
+function smartEquipment:OnEnable()
     self:RegisterEvent("PLAYER_SPECIALIZATION_CHANGED", "OnSpecChange")
 end
 
-function autoGS:OnDisable()
-    -- Called when the addon is disabled
+function smartEquipment:OnDisable()
 end
 
-function autoGS:OnSpecChange(EventType, UnitID)
+function smartEquipment:OnSpecChange(EventType, UnitID)
     if(UnitID == "player") then
-        local _specID,_specName = GetSpecializationInfo(GetSpecialization())
-        UIErrorsFrame:AddMessage("Spec changed for " .. _specName ..". Swapping gear for %gearset_name%", 1.0, 1.0, 1.0, 5.0)
+        local specID, specName = GetSpecializationInfo(GetSpecialization())
+        self:SwapGear(tostring(specID))
+        UIErrorsFrame:AddMessage("Spec changed for " .. specName ..", Swap gear for %gearset_name%", 1.0, 1.0, 1.0, 5.0)
     end
 end
 
-function autoGS:GetGear(info)
-    return self.db.profile.gearTable[1]
+function smartEquipment:GetChoice(info)
+    return self.db.profile.gearConfigList[info[1]]
 end
 
-function autoGS:SetGear(info, choiceID)
+function smartEquipment:SetChoice(info, choiceID)
+    --self.datatest[1] = choiceID
+    self.db.profile.gearConfigList[info[1]] = choiceID
+end
 
-    self.db.profile.gearTable[1] = choiceID
-    --[[
-    if GetEquipmentSetInfoByName(gearName) then
-        self.db.profile.gearTable[1] = gearName
-    else
-        self.db.profile.gearTable[1] = ""
+function smartEquipment.GetAvailableEquipments()
+    local i = 0
+    local nbElements = GetNumEquipmentSets()
+    return function()
+        i = i + 1
+        local eqName = GetEquipmentSetInfo(i)
+        if i <= nbElements then return i, eqName end
     end
-    --]]
 end
 
-function autoGS:SlashCommand(input)
+function smartEquipment.GetAvailableSpecializations()
+    local i = 0
+    local nbElements = GetNumSpecializations()
+    return function()
+        i = i + 1
+        local specID, specName = GetSpecializationInfo(i)
+        if i <= nbElements then return specID, specName end
+    end
+end
+
+function smartEquipment:SlashCommand(input)
     InterfaceOptionsFrame_OpenToCategory("AutoGearSwap")
     InterfaceOptionsFrame_OpenToCategory("AutoGearSwap")
 end
 
-function autoGS:SwapGear(SpecID)
-    if(self.db.profile.gearTable[SpecID]) then
-        UseEquipmentSet(self.db.profile.gearTable[SpecID])
+function smartEquipment:DebugCommand(input)
+    for i, k in self.GetAvailableEquipments() do
+        self:Print(i, k)
+    end
+end
+
+function smartEquipment:SwapGear(SpecID)
+    if (self.db.profile.gearConfigList[SpecID]) then
+        local setName = GetEquipmentSetInfo(self.db.profile.gearConfigList[SpecID])
+        UseEquipmentSet(setName)
     end
 end
